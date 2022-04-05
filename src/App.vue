@@ -40,13 +40,16 @@
       </div>
     </form>
 
-    <button class="text-white bg-gradient-to-br mt-4 from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2" @click="chooseProduction(sentence)">Gerar</button>
+    <button :disabled="isButtonDisabled" class="text-white bg-gradient-to-br mt-4 from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2" @click="handleGenerate">Gerar</button>
 
 
     <div class="mt-4">
+     <p>Start: {{ start }}</p>
+     <p>Produções: {{  productions  }}</p>
+     <p>Terminais: {{ terminals }}</p>
+     <p>Não-terminais: {{ nonTerminals }}</p>
      <h2 class="text-2xl">Output:</h2>
-     <p>Start: {{ sentence }}</p>
-     <p>Produções: {{  selectedExempleProps  }}</p>
+     
      <p>{{ output }}</p> 
     </div>
   </div>
@@ -54,70 +57,42 @@
 
 <script>
 import { getRandomInt, isItNonTerminal } from "./utils/script.js";
+import { option1, option2, option3 } from "./utils/examples";
 
 export default {
   name: "App",
   data() {
     return {
+      sentence: "",
       terminals: "",
       nonTerminals: "",
       productions: "",
       start: "",
       selectedExemple: "",
-      sentence: ["aSbAS", "ab"],
       output: "",
-      option1: {
-        nonTerminalsDictionary: {
-          S: "aSab | Sb ",
-          A: "ab",
-        },
-        start: ["aSbAS", "ab"],
-      },
-      option2: {
-        nonTerminalsDictionary: {
-          S: "aSab | Sb ",
-          A: "ab",
-        },
-        start: ["aBSa", "ab"],
-      },
-      option3: {
-        nonTerminalsDictionary: {
-          S: "aaa | Sb ",
-          A: "ab",
-        },
-        start: ["aSbAS", "ab"],
-      },
+      selectedExempleProps: "",
     };
   },
   computed: {
-    terminalsArray() {
-      return this.terminals.split(",");
-    },
-    selectedExempleProps() {
-      return this[this.selectedExemple];
+    isButtonDisabled() {
+      return this.selectedExemple ? false : true;
     },
   },
-  created() {
-    this.output = this.chooseProduction(["aSbAS", "ab"]);
-  },
+
   methods: {
     splitString(production) {
       let productionArray = production.split("").reverse();
       let output = [];
-      let dictionary = {
-        A: "a",
-        S: "ab | aSB",
-        B: "A | b",
-      };
+      let dictionary = this.productions;
 
-      this.productions = dictionary;
+      console.log(production);
 
       if (productionArray.some((item) => isItNonTerminal(item))) {
         productionArray.forEach((item, index) => {
           if (isItNonTerminal(item)) {
             productionArray = productionArray.slice(index);
             if (!dictionary[item]) {
-              return;
+              throw new Error("Esse não terminal não existe no dicionário");
             }
 
             let sentences = dictionary[item].split("|");
@@ -140,6 +115,31 @@ export default {
       var production = productions[randomInt];
 
       this.splitString(production);
+    },
+
+    handleGenerate() {
+      switch (this.selectedExemple) {
+        case "option1":
+          this.terminals = option1.terminals;
+          this.nonTerminals = option1.nonTerminals;
+          this.start = option1.start;
+          this.productions = option1.productions;
+          break;
+        case "option2":
+          this.terminals = option2.terminals;
+          this.nonTerminals = option2.nonTerminals;
+          this.start = option2.start;
+          this.productions = option2.productions;
+          break;
+        case "option3":
+          this.terminals = option3.terminals;
+          this.nonTerminals = option3.nonTerminals;
+          this.start = option3.start;
+          this.productions = option3.productions;
+          break;
+      }
+
+      this.chooseProduction(this.start);
     },
   },
 };
